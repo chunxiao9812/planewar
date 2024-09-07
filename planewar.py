@@ -146,7 +146,6 @@ class Enemy(pygame.sprite.Sprite):
 class Bomb(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        index = random.randint(1, 16)
         self.images = [pygame.image.load('score/bomb/bomb-' + str(i) + '.png') for i in range(1, 7)]
         # self.speed = random.randint(3, 10)
         self.image_index = 0
@@ -191,8 +190,26 @@ while True:
                 pygame.quit()
                 sys.exit()
 
-        if event.type == CREAT_ENEMY:
-            enemy_group.add(Enemy(random.randint(3, 10)))
+            # 鼠标控制飞机移动
+            if event.type == pygame.MOUSEMOTION:
+                # print('鼠标移动')
+                pos = pygame.mouse.get_pos()
+                # prin t(pos)
+                # 隐藏鼠标指针
+                # 这个隐藏鼠标指针效果更好
+                pygame.mouse.set_visible(False)
+                # 这个鼠标指针隐藏效果差一点
+                # hide_mouse_sorsor()
+                # win32api.SetCursor(None)
+                # 鼠标位置绑定飞机位置(鼠标跟踪效果)
+                hero.rect.y = pos[1]
+                hero.rect.x = pos[0]
+                # 当英雄飞机血量小于等于零，显示鼠标指针
+                # if hero_hp <= 0:
+                #     pygame.mouse.set_visible(True)
+
+            if event.type == CREAT_ENEMY:
+                enemy_group.add(Enemy(random.randint(3, 10)))
         peng = pygame.sprite.groupcollide(enemy_group, bullet_group, True, True)
         for enemy in peng.keys():
             bomb = Bomb()
