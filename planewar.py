@@ -19,6 +19,8 @@ screen = pygame.display.set_mode((width, height), pygame.RESIZABLE | pygame.HWSU
 pygame.display.set_caption('飞机大战 编者:海天飞歌')
 clock = pygame.time.Clock()
 pygame.time.set_timer(CREAT_ENEMY, MILLIS)
+hero_hp = 3
+score = 0
 
 
 class Background(pygame.sprite.Sprite):
@@ -51,13 +53,8 @@ class Hero(pygame.sprite.Sprite):
         self.rect.y = height - self.rect.height - 30
         self.speed = speed
         self.fps = 0
-        # self.frame_index = 0
 
     def shoot(self):
-        # self.frame_index += 1
-        # if self.frame_index < self.fps:
-        #     # return
-        #     self.frame_index = 0
         bullet1 = Bullet(0, 6)
         bullet1.rect.centerx = self.rect.centerx
         bullet1.rect.bottom = self.rect.top + bullet1.rect.height / 2
@@ -105,6 +102,9 @@ class Hero(pygame.sprite.Sprite):
         self.fps += 1
         if self.fps > 10:
             self.fps = 0
+
+    def reset(self):
+        self.__init__(self.speed)
 
 
 class Bullet(pygame.sprite.Sprite):
@@ -190,6 +190,9 @@ while True:
                 pygame.quit()
                 sys.exit()
 
+            if event.type == CREAT_ENEMY:
+                enemy_group.add(Enemy(random.randint(3, 10)))
+
             # 鼠标控制飞机移动
             if event.type == pygame.MOUSEMOTION:
                 # print('鼠标移动')
@@ -205,22 +208,65 @@ while True:
                 hero.rect.y = pos[1]
                 hero.rect.x = pos[0]
                 # 当英雄飞机血量小于等于零，显示鼠标指针
-                # if hero_hp <= 0:
-                #     pygame.mouse.set_visible(True)
-
-            if event.type == CREAT_ENEMY:
-                enemy_group.add(Enemy(random.randint(3, 10)))
+                if hero_hp <= 0:
+                    pygame.mouse.set_visible(True)
         peng = pygame.sprite.groupcollide(enemy_group, bullet_group, True, True)
         for enemy in peng.keys():
             bomb = Bomb()
             bomb.rect = enemy.rect
             bomb_group.add(bomb)
-        # hero_peng = pygame.sprite.groupcollide(enemy_group, hero_group, True, True)
-        # for hero in hero_peng.keys():
-        #     bomb = Bomb()
-        #     bomb.rect = hero.rect
-        #     bomb_group.add(bomb)
+            score += 1000
+        hero_peng = pygame.sprite.groupcollide(hero_group, enemy_group, False, True)
+        for hero in hero_peng.keys():
+            bomb = Bomb()
+            bomb.rect = hero.rect
+            bomb_group.add(bomb)
+
+        # 获取按键列表
+            key_pressed = pygame.key.get_pressed()
+            if running:
+                # 游戏结束按空格键
+                if key_pressed[pygame.K_SPACE]:
+                    # 游戏重新开始
+                    player_hp = 3
+                    for enemy in enemy_group:
+                        enemy.reset()
+                    score = 0
+                    hero.reset()
+                    running = False
+                    bg_music.play(-1)
+        # 敌机和英雄飞机
+        # for enemy in enemy_group:
+        #     pass
+        if hero_peng:
+            # enemy.bomb.set_used(enemy.rect.x, enemy.rect.y)
+            # self.impact_count += 1
+            score += 1000
+            ###########################################################################
+            # 减少玩家的血量
+            hero_hp -= 1
+        # 如果玩家血量减少到零
+        elif hero_hp == 0:
+            hero.reset()
+            hero_hp = 3
+            # 游戏状态设置为False
+            running = True
+            # pygame.mixer.music.stop()
+            # pygame.mixer.stop()
+            # self.defeat_count = 0
+            # self.damage_count = 0
+            # self.impact_count = 0
+            score = 0
         for group in [bg_group, bullet_group, hero_group, enemy_group, bomb_group]:
             group.update()
             group.draw(screen)
+            # 创建字体
+            font = pygame.font.Font('score/fonts/SimHei.ttf', 30)
+            # 设置位置
+            score_text = font.render('分数: %s ' % score, True, (255, 255, 255))
+            # 绘制文字
+            screen.blit(score_text, (15, 15))
+            for i in range(hero_hp):
+                image = pygame.transform.scale(hero.image, (hero.rect.width/2, hero.rect.height/2))
+                screen.blit(image, (10 + i * (image.get_width() + 5), height - image.get_width() - 10))
         pygame.display.flip()
