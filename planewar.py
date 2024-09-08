@@ -21,6 +21,10 @@ clock = pygame.time.Clock()
 pygame.time.set_timer(CREAT_ENEMY, MILLIS)
 hero_hp = 3
 score = 0
+# 统计战斗数据
+defeat_count = 0  # 击败敌机数
+# damage_count = 0  # 被击中次数
+impact_count = 0  # 被撞击次数
 
 
 class Background(pygame.sprite.Sprite):
@@ -216,6 +220,9 @@ while True:
             bomb.rect = enemy.rect
             bomb_group.add(bomb)
             score += 1000
+            defeat_count += 1
+
+
         hero_peng = pygame.sprite.groupcollide(hero_group, enemy_group, False, True)
         for hero in hero_peng.keys():
             bomb = Bomb()
@@ -240,7 +247,7 @@ while True:
         #     pass
         if hero_peng:
             # enemy.bomb.set_used(enemy.rect.x, enemy.rect.y)
-            # self.impact_count += 1
+            impact_count += 1
             score += 1000
             ###########################################################################
             # 减少玩家的血量
@@ -252,16 +259,25 @@ while True:
             # 游戏状态设置为False
             running = True
             # pygame.mixer.music.stop()
-            # pygame.mixer.stop()
-            # self.defeat_count = 0
-            # self.damage_count = 0
-            # self.impact_count = 0
+            pygame.mixer.stop()
+            defeat_count = 0
+            # damage_count = 0
+            impact_count = 0
             score = 0
         for group in [bg_group, bullet_group, hero_group, enemy_group, bomb_group]:
             group.update()
             group.draw(screen)
+
+            # 使用 SimHei 字体，并设置 16 号大小
+            font = pygame.font.Font('D://pythonfiles/pythonProject/planewar/score/fonts/SimHei.ttf', 16)
+            # text = f"击毁数:{defeat_count} 被击中:{damage_count} 被撞击:{impact_count}"
+            text = f"击中敌机数:{defeat_count}  被撞击:{impact_count}"
+            # 文字内容、抗锯齿、颜色
+            text = font.render(text, True, (255, 255, 255))
+            # 绘制文本内容
+            screen.blit(text, (180, 20))
             # 创建字体
-            font = pygame.font.Font('score/fonts/SimHei.ttf', 30)
+            font = pygame.font.Font('score/fonts/SimHei.ttf', 20)
             # 设置位置
             score_text = font.render('分数: %s ' % score, True, (255, 255, 255))
             # 绘制文字
